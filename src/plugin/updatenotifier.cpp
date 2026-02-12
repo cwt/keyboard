@@ -80,24 +80,19 @@ void UpdateNotifier::notify(MImUpdateEvent* event)
     if (not d->has_selection and properties_changed.contains(g_cursor_position_property)) {
         const int cursor_position(event->value(g_cursor_position_property).toInt());
         QString surrounding_text(event->value(g_surrounding_text_property).toString());
-        bool emit_a_signal(true);
+        const bool emit_a_signal = (not properties_changed.contains(g_anchor_position_property)
+                                    or event->value(g_anchor_position_property).toInt() == cursor_position);
 
-        // Validate the surrounding text length to prevent buffer overflows
-        if (surrounding_text.length() > ::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH) {
-            qWarning() << "Surrounding text too long in UpdateNotifier, truncating from"
-                       << surrounding_text.length() << "to" << ::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH;
-            surrounding_text = surrounding_text.left(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH);
-            // Adjust cursor position if it's beyond the new text length
-            if (cursor_position > surrounding_text.length()) {
-                // Use a safe default position if the cursor is beyond the truncated text
-                Q_EMIT cursorPositionChanged(surrounding_text.length(), surrounding_text);
+        if (emit_a_signal) {
+            // Validate the surrounding text length to prevent buffer overflows
+            if (surrounding_text.length() > ::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH) {
+                qWarning() << "Surrounding text too long in UpdateNotifier, truncating from"
+                           << surrounding_text.length() << "to" << ::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH;
+                surrounding_text = surrounding_text.left(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH);
+                // Adjust cursor position if it's beyond the new text length
+                const int adjusted_position = qMin(cursor_position, surrounding_text.length());
+                Q_EMIT cursorPositionChanged(adjusted_position, surrounding_text);
             } else {
-                Q_EMIT cursorPositionChanged(cursor_position, surrounding_text);
-            }
-        } else {
-            const bool emit_a_signal = (not properties_changed.contains(g_anchor_position_property)
-                                        or event->value(g_anchor_position_property).toInt() == cursor_position);
-            if (emit_a_signal) {
                 Q_EMIT cursorPositionChanged(cursor_position, surrounding_text);
             }
         }
