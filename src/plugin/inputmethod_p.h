@@ -202,7 +202,7 @@ public:
         }
 
         // When keyboard geometry changes, update the window's input mask
-        QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this, view]() {
+        QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this]() {
             if (view) {
                 view->setMask(m_geometry->visibleRect().toRect());
             }
@@ -392,7 +392,7 @@ public:
             }
 
             // When keyboard geometry changes, update the window's input mask
-            QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this, view]() {
+            QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this]() {
                 if (view) {
                     view->setMask(m_geometry->visibleRect().toRect());
                 }
