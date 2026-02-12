@@ -337,6 +337,8 @@ public:
             return;
 
         host->notifyImInitiatedHiding();
+        host->setScreenRegion(QRegion());
+        host->setInputMethodArea(QRect(), nullptr);
 
         m_geometry->setShown(false);
 
@@ -345,6 +347,7 @@ public:
         // Destroy the view to free GPU resources
         view->setVisible(false);
         view->destroy();  // This releases GPU resources
+        m_device->setWindow(nullptr);
         delete view;
         view = nullptr;
     }
@@ -378,9 +381,6 @@ public:
                 engine->addImportPath(MALIIT_KEYBOARD_QML_DIR);
                 engine->addImportPath(QStringLiteral(MALIIT_KEYBOARD_QML_DIR) + QDir::separator() + "keys");
             }
-
-            // Register types again if needed
-            registerTypes();
 
             // workaround: resizeMode not working in current qpa implementation
             view->setResizeMode(QQuickView::SizeRootObjectToView);

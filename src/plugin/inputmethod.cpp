@@ -148,7 +148,9 @@ InputMethod::InputMethod(MAbstractInputMethodHost *host)
     d->view->setGeometry(qGuiApp->primaryScreen()->geometry());
     connect(qGuiApp->primaryScreen(), &QScreen::geometryChanged,
             this, [this, d](const QRect &geometry) {
-        d->view->setGeometry(geometry);
+        if (d->view) {
+            d->view->setGeometry(geometry);
+        }
     });
 }
 
@@ -705,7 +707,11 @@ void InputMethod::onVisibleRectChanged()
     }
 
     inputMethodHost()->setScreenRegion(QRegion(visibleRect));
-    inputMethodHost()->setInputMethodArea(visibleRect, d->view);
+    if (d->view) {
+        inputMethodHost()->setInputMethodArea(visibleRect, d->view);
+    } else {
+        inputMethodHost()->setInputMethodArea(visibleRect, nullptr);
+    }
 
     qDebug() << "keyboard is reporting <x y w h>: <"
                 << visibleRect.x()

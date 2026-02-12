@@ -51,13 +51,14 @@ Device::Device(const KeyboardSettings *settings, QObject *parent)
 
 void Device::setWindow(QWindow *window)
 {
-    if (m_window)
-        disconnect(window, &QWindow::screenChanged, this, nullptr);
+    if (m_window) {
+        disconnect(m_window, &QWindow::screenChanged, this, nullptr);
+    }
 
     m_window = window;
 
     if (m_window) {
-        connect(window, &QWindow::screenChanged, this, &Device::updateScreen);
+        connect(m_window, &QWindow::screenChanged, this, &Device::updateScreen);
         updateScreen(m_window->screen());
     }
 
