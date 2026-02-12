@@ -202,8 +202,10 @@ public:
         }
 
         // When keyboard geometry changes, update the window's input mask
-        QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this]() {
-            view->setMask(m_geometry->visibleRect().toRect());
+        QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this, view]() {
+            if (view) {
+                view->setMask(m_geometry->visibleRect().toRect());
+            }
         });
     }
 
@@ -390,8 +392,10 @@ public:
             }
 
             // When keyboard geometry changes, update the window's input mask
-            QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this]() {
-                view->setMask(m_geometry->visibleRect().toRect());
+            QObject::connect(m_geometry, &KeyboardGeometry::visibleRectChanged, view, [this, view]() {
+                if (view) {
+                    view->setMask(m_geometry->visibleRect().toRect());
+                }
             });
 
             // Load the QML source - use the same path as in constructor
