@@ -90,6 +90,81 @@ private:
         QCOMPARE(text.surrounding(), surrounding);
         QCOMPARE(ok, returnValue);
     }
+
+    Q_SLOT void testSetSurroundingOverflow_data()
+    {
+        QTest::addColumn<QString>("input");
+        QTest::addColumn<QString>("expected");
+        QTest::addColumn<bool>("wasTruncated");
+
+        // Normal case - should not be truncated
+        QTest::newRow("normal text") << QString("Hello world") << QString("Hello world") << false;
+
+        // Boundary case - exactly at the limit
+        QString atLimit(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH, 'A');
+        QTest::newRow("at limit") << atLimit << atLimit << false;
+
+        // Overflow case - should be truncated
+        QString overflow(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH + 100, 'B');
+        QString expectedOverflow(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH, 'B');
+        QTest::newRow("overflow") << overflow << expectedOverflow << true;
+
+        // Very large overflow case
+        QString hugeOverflow(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH * 2, 'C');
+        QString expectedHuge(::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH, 'C');
+        QTest::newRow("huge overflow") << hugeOverflow << expectedHuge << true;
+    }
+
+    Q_SLOT void testSetSurroundingOverflow()
+    {
+        QFETCH(QString, input);
+        QFETCH(QString, expected);
+        QFETCH(bool, wasTruncated);
+
+        Model::Text text;
+        text.setSurrounding(input);
+
+        QCOMPARE(text.surrounding(), expected);
+        QCOMPARE(text.surrounding().length(), expected.length());
+
+        // Verify that the length is within the limit
+        QVERIFY(text.surrounding().length() <= ::MaliitKeyboard::MAX_SURROUNDING_TEXT_LENGTH);
+    }
+
+    Q_SLOT void testSetSurroundingOffsetBounds_data()
+    {
+        QTest::addColumn<QString>("surrounding");
+        QTest::addColumn<uint>("inputOffset");
+        QTest::addColumn<uint>("expectedOffset");
+
+        // Normal case - offset within bounds
+        QTest::newRow("within bounds") << QString("Hello world") << (uint)5 << (uint)5;
+
+        // Offset equal to length - should be valid
+        QTest::newRow("at boundary") << QString("Hello") << (uint)5 << (uint)5;
+
+        // Offset exceeding length - should be clamped to length
+        QTest::newRow("exceeding length") << QString("Hi") << (uint)10 << (uint)2;
+
+        // Empty surrounding text with zero offset
+        QTest::newRow("empty zero offset") << QString("") << (uint)0 << (uint)0;
+
+        // Empty surrounding text with large offset - should clamp to 0
+        QTest::newRow("empty large offset") << QString("") << (uint)1000 << (uint)0;
+    }
+
+    Q_SLOT void testSetSurroundingOffsetBounds()
+    {
+        QFETCH(QString, surrounding);
+        QFETCH(uint, inputOffset);
+        QFETCH(uint, expectedOffset);
+
+        Model::Text text;
+        text.setSurrounding(surrounding);
+        text.setSurroundingOffset(inputOffset);
+
+        QCOMPARE(text.surroundingOffset(), expectedOffset);
+    }
 };
 
 } // namespace
